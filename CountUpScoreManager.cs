@@ -2,30 +2,32 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening;
 
-[System.Serializable]
-public class Digit
-{
-	public int val = 0;
-	public GameObject gameObject;
-	[HideInInspector] public Image image;
-	[HideInInspector] public RectTransform rectTransform;
 
-	public void Init()
-	{
-		val = 0;
-		if (gameObject == null) return;
-
-		image = gameObject.GetComponent<Image>();
-		if(image != null)
-		{
-			image.color = new Color(1f, 1f, 1f, 0.2f);
-		}
-		rectTransform = gameObject.GetComponent<RectTransform>();
-	}
-};
 
 public class CountUpScoreManager : MonoBehaviour
 {
+	[System.Serializable]
+	public class Digit
+	{
+		public int val = 0;
+		public GameObject gameObject;
+		[HideInInspector] public Image image;
+		[HideInInspector] public RectTransform rectTransform;
+
+		public void Init()
+		{
+			val = 0;
+			if (gameObject == null) return;
+
+			image = gameObject.GetComponent<Image>();
+			if (image != null)
+			{
+				image.color = new Color(1f, 1f, 1f, 0.2f);
+			}
+			rectTransform = gameObject.GetComponent<RectTransform>();
+		}
+	};
+
 	[Header("ScoreSetting")]
 	[SerializeField] int score = 0;
 	[SerializeField] int maxDigit = 7;
@@ -43,9 +45,6 @@ public class CountUpScoreManager : MonoBehaviour
 	[Tooltip("描画順の調節用")]
 	[SerializeField] Transform childScoreMask;
 
-	private int _prevScore = 0;
-	private int[] _prevDigits;
-
 	private float _digitStartY = -330;
 	private float _digitEndY = 300;
 	private float _digitHeight = 63f;
@@ -55,8 +54,6 @@ public class CountUpScoreManager : MonoBehaviour
 	// Start is called once before the first execution of Update after the MonoBehaviour is created
 	void Start()
 	{
-		_prevDigits = new int[maxDigit];
-
 		for (int i = 0; i < maxDigit; i++)
 		{
 			digits[i].Init();
@@ -67,20 +64,12 @@ public class CountUpScoreManager : MonoBehaviour
 
 	private void Update()
 	{
-		if (Input.GetKeyDown(KeyCode.O))
-		{
-			AddScore(13);
-		}
-		if (Input.GetKeyDown(KeyCode.P))
-		{
-			AddScore(145);
-		}
+
 	}
 
 	/// <summary>スコアの加算</summary>
 	public void AddScore(int value)
 	{
-		_prevScore = score;
 		score += value;
 
 		Vector3 initPos = new Vector3(0f, -80f, 0f);
@@ -98,7 +87,6 @@ public class CountUpScoreManager : MonoBehaviour
 	public void CountUpAnim()
 	{
 		GetScoreDigits(score);
-		GetPrevDigits(_prevScore);
 
 		DigitAnim(0);
 
@@ -122,8 +110,6 @@ public class CountUpScoreManager : MonoBehaviour
 
 		float targetY = _digitHeight * digits[num].val + _digitStartY;
 
-		if (rect.localPosition.y == targetY) return;
-
 		if (digits[num].val == 0)
 		{
 			// 前回と同じ場合スキップ
@@ -140,7 +126,7 @@ public class CountUpScoreManager : MonoBehaviour
 		{
 			// 移動量と時間の計算
 			float firstHalf = _digitEndY - rect.localPosition.y;
-			int step = (int)(firstHalf + (targetY - _digitStartY));
+			int step = (int)(firstHalf + targetY - _digitStartY);
 			float ratio = animTime / step;
 			float time = ratio * (int)firstHalf;
 
@@ -174,28 +160,6 @@ public class CountUpScoreManager : MonoBehaviour
 				int digit = num % 10;
 
 				digits[i].val = digit;
-
-				num /= 10;
-			}
-		}
-	}
-
-	/// <summary>各桁の取得</summary>
-	private void GetPrevDigits(int num)
-	{
-		if (num >= Mathf.Pow(10, maxDigit))
-		{
-			for (int i = 0; i < maxDigit; i++)
-			{
-				_prevDigits[i] = 9;
-			}
-		}
-		else
-		{
-			for (int i = 0; num > 0; i++)
-			{
-				int digit = num % 10;
-				_prevDigits[i] = digit;
 
 				num /= 10;
 			}
